@@ -3,7 +3,7 @@ pkgname=filen-desktop-bin
 _pkgname=Filen
 pkgver=3.0.53
 _electronversion=43
-pkgrel=3
+pkgrel=4
 pkgdesc="Desktop client including Syncing, Virtual Drive mounting, S3, WebDAV, File Browsing, Chats, Notes, Contacts and more.(Prebuilt version.Use system-wide electron)"
 arch=(
     'aarch64'
@@ -16,6 +16,7 @@ conflicts=("${pkgname%-bin}")
 provides=("${pkgname%-git}=${pkgver}")
 depends=(
     "electron${_electronversion}"
+    'rclone'
 )
 makedepends=(
     'asar'
@@ -66,10 +67,12 @@ prepare() {
     rm -rf "${_app_dir}/resources/app.asar.unpacked/bin/"*
     case "${CARCH}" in
         aarch64)
-            ln -sf /usr/bin/rclone "${_app_dir}/resources/app.asar.unpacked/bin/rclone-linux-arm64"
+            install -d "${_app_dir}/resources/app.asar.unpacked/bin/rclone"
+            ln -sf /usr/bin/rclone "${_app_dir}/resources/app.asar.unpacked/bin/rclone/rclone-linux-arm64"
             ;;
         x86_64)
-            ln -sf /usr/bin/rclone "${_app_dir}/resources/app.asar.unpacked/bin/rclone-linux-amd64"
+            install -d "${_app_dir}/resources/app.asar.unpacked/bin/rclone"
+            ln -sf /usr/bin/rclone "${_app_dir}/resources/app.asar.unpacked/bin/rclone/rclone-linux-amd64"
             ;;
     esac
 }
