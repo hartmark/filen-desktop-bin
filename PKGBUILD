@@ -3,7 +3,7 @@ pkgname=filen-desktop-bin
 _pkgname=Filen
 pkgver=3.0.53
 _electronversion=43
-pkgrel=4
+pkgrel=5
 pkgdesc="Desktop client including Syncing, Virtual Drive mounting, S3, WebDAV, File Browsing, Chats, Notes, Contacts and more.(Prebuilt version.Use system-wide electron)"
 arch=(
     'aarch64'
@@ -62,6 +62,13 @@ prepare() {
     find "${_app_dir}/resources" -type d -exec chmod 755 {} +
     asar e "${_app_dir}/resources/app.asar" "${srcdir}/app.asar.unpacked"
     rm -rf "${_app_dir}/resources/app.asar"
+    # The sync engine only excluded .filen.trash.local at the sync root.  A
+    # trash directory inside a synced folder made the worker lstat a tombstone
+    # as though it were a directory, then exit with ENOTDIR.
+    sed -i \
+        -e 's#^                        if (path_1.default.posix.basename(entryItem).startsWith(constants_1.LOCAL_TRASH_NAME) ||$#                        if (entryItem.split("\\/").some(segment => segment.startsWith(constants_1.LOCAL_TRASH_NAME))) {#' \
+        -e '/^[[:space:]]*entryPath\.startsWith/d' \
+        "${srcdir}/app.asar.unpacked/node_modules/@filen/sync/dist/lib/filesystems/local.js"
     find "${srcdir}/app.asar.unpacked/dist" -type f -exec sed -i "s/process.resourcesPath/\'\/usr\/lib\/${pkgname%-bin}\'/g" {} +
     asar p "${srcdir}/app.asar.unpacked" "${_app_dir}/resources/app.asar"
     rm -rf "${_app_dir}/resources/app.asar.unpacked/bin/"*
